@@ -117,14 +117,101 @@ class FloatingUI {
             }
         });
 
-        // Prevent page interactions when clicking overlay
+        // Smart event handling - allow scrolling while preventing page interactions
         this.overlay.addEventListener('click', (e) => {
-            e.stopPropagation();
+            const isInteractive = this.isInteractiveElement(e.target);
+            console.log('🖱️ [FloatingUI] Click event:', {
+                target: e.target.className,
+                isInteractive,
+                willStopPropagation: !isInteractive
+            });
+            
+            // Only stop propagation for clicks that aren't on interactive elements
+            if (!isInteractive) {
+                e.stopPropagation();
+            }
         });
 
         this.overlay.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
+            const isScrollable = this.isScrollableArea(e.target);
+            const isInteractive = this.isInteractiveElement(e.target);
+            console.log('⬇️ [FloatingUI] Mousedown event:', {
+                target: e.target.className,
+                isScrollable,
+                isInteractive,
+                willStopPropagation: !isScrollable && !isInteractive
+            });
+            
+            // Allow mousedown on scrollable areas and interactive elements
+            if (!isScrollable && !isInteractive) {
+                e.stopPropagation();
+            }
         });
+
+        // Allow wheel events to scroll content naturally within overlay
+        this.overlay.addEventListener('wheel', (e) => {
+            console.log('🎡 [FloatingUI] Wheel event detected on overlay');
+            
+            // Check if the target is within a scrollable area
+            if (this.isScrollableArea(e.target)) {
+                console.log('✅ [FloatingUI] Wheel event in scrollable area - allowing natural scroll');
+                // Don't stop propagation - let the scrollable element handle it
+                return;
+            }
+            
+            // Only stop propagation if not in a scrollable area to prevent page scroll
+            console.log('🚫 [FloatingUI] Wheel event outside scrollable area - preventing page scroll');
+            e.stopPropagation();
+        }, { passive: true });
+    }
+
+    // Helper method to identify scrollable content areas
+    isScrollableArea(element) {
+        // Check if element or its parents are scrollable containers
+        const scrollableSelectors = [
+            '.summary-text',
+            '.chat-messages', 
+            '.summary-content',
+            '.chat-section'
+        ];
+        
+        let current = element;
+        while (current && current !== this.overlay) {
+            if (scrollableSelectors.some(selector => current.matches && current.matches(selector))) {
+                console.log('🎯 [FloatingUI] Element identified as scrollable:', current.className);
+                return true;
+            }
+            current = current.parentElement;
+        }
+        return false;
+    }
+
+    // Helper method to identify interactive elements
+    isInteractiveElement(element) {
+        // Check if element or its parents are interactive
+        const interactiveSelectors = [
+            'button',
+            'input', 
+            'textarea',
+            'select',
+            'a',
+            '.action-btn',
+            '.control-btn',
+            '.send-btn',
+            '.chat-input',
+            '.overlay-header' // Allow header interactions for dragging
+        ];
+        
+        let current = element;
+        while (current && current !== this.overlay) {
+            if (interactiveSelectors.some(selector => 
+                current.matches && current.matches(selector))) {
+                console.log('⚙️ [FloatingUI] Element identified as interactive:', current.className);
+                return true;
+            }
+            current = current.parentElement;
+        }
+        return false;
     }
 
     handleDragStart(e) {
