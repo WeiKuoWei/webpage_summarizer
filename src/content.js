@@ -15,18 +15,25 @@ class ArticleSummarizer {
 
     async init() {
         try {
-            console.log('Article Summarizer extension loading...');
+            console.log('🚀 [ArticleSummarizer] Initializing extension on:', window.location.href);
+            console.log('📊 [ArticleSummarizer] Document ready state:', document.readyState);
             
             // Load all required modules
+            console.log('📦 [ArticleSummarizer] Starting module loading process...');
             await this.loadModules();
+            console.log('✅ [ArticleSummarizer] All modules loaded successfully');
             
             // Initialize components
+            console.log('🔧 [ArticleSummarizer] Initializing components...');
             this.initializeComponents();
+            console.log('✅ [ArticleSummarizer] Components initialized successfully');
             
             // Wait for page to be ready
             if (document.readyState === 'loading') {
+                console.log('⏳ [ArticleSummarizer] Waiting for DOMContentLoaded...');
                 document.addEventListener('DOMContentLoaded', () => this.start());
             } else {
+                console.log('▶️ [ArticleSummarizer] DOM ready, starting immediately');
                 this.start();
             }
         } catch (error) {
@@ -179,30 +186,42 @@ class ArticleSummarizer {
 
     async start() {
         try {
+            console.log('🎯 [ArticleSummarizer] Starting article analysis...');
+            
             // Validate components are ready
             if (!this.detector || !this.textExtractor || !this.floatingUI) {
                 throw new Error('Components not properly initialized');
             }
+            console.log('✅ [ArticleSummarizer] Component validation passed');
 
-            console.log('Starting article detection...');
+            console.log('🔍 [ArticleSummarizer] Running article detection algorithm...');
             
             // Check if article is detected
             const detection = this.detector.detectArticle();
+            console.log('📈 [ArticleSummarizer] Detection result:', detection);
             
             if (!detection || !detection.hasOwnProperty('isArticle')) {
                 console.error('Invalid detection result:', detection);
                 return;
             }
             
-            if (!detection.isArticle || detection.confidence < 70) {
-                console.log(`No article detected or confidence too low: ${detection.confidence}%`);
+            if (!detection.isArticle || detection.confidence < 50) {
+                console.log(`❌ [ArticleSummarizer] Article detection failed - confidence: ${detection.confidence}%`);
+                console.log('📝 [ArticleSummarizer] Page type: Non-article content');
                 return;
             }
             
-            console.log(`Article detected with ${detection.confidence}% confidence`);
+            console.log(`✅ [ArticleSummarizer] Article detected with ${detection.confidence}% confidence`);
+            console.log('📊 [ArticleSummarizer] Article metadata:', detection.metadata);
             
             // Extract article content
+            console.log('📄 [ArticleSummarizer] Starting content extraction...');
             const content = this.textExtractor.extractStructuredContent();
+            console.log('📏 [ArticleSummarizer] Content extraction stats:', {
+                titleLength: content.title?.length || 0,
+                contentLength: content.content?.length || 0,
+                headingCount: content.headings?.length || 0
+            });
             
             if (!content || !content.content || content.content.length < 200) {
                 console.log('Insufficient content extracted:', content?.content?.length || 0, 'characters');
@@ -221,13 +240,21 @@ class ArticleSummarizer {
             };
             
             // Create and show floating UI
+            console.log('🎨 [ArticleSummarizer] Creating floating UI interface...');
             await this.createUI();
+            console.log('✅ [ArticleSummarizer] UI created successfully');
             
             // Start summarization
+            console.log('🤖 [ArticleSummarizer] Starting AI summarization process...');
             await this.summarizeArticle();
+            console.log('✅ [ArticleSummarizer] Summarization process completed');
             
         } catch (error) {
-            console.error('Failed to start article summarizer:', error);
+            console.error('💥 [ArticleSummarizer] Critical error during startup:', {
+                error: error.message,
+                stack: error.stack,
+                url: window.location.href
+            });
             this.showUserError('Failed to initialize article summarizer. Please refresh the page to try again.');
         }
     }
@@ -289,24 +316,39 @@ class ArticleSummarizer {
     }
 
     async summarizeArticle() {
-        if (!this.floatingUI || !this.articleData) return;
+        if (!this.floatingUI || !this.articleData) {
+            console.warn('⚠️ [ArticleSummarizer] Summarization skipped - missing UI or article data');
+            return;
+        }
         
         try {
+            console.log('🔄 [ArticleSummarizer] Showing loading state to user...');
             // Show loading state
             this.floatingUI.showLoading('Analyzing article...');
             
+            console.log('✅ [ArticleSummarizer] Validating article data before API call...');
             // Validate article data
             this.apiClient.validateArticleData(this.articleData);
+            console.log('✅ [ArticleSummarizer] Article data validation passed');
             
+            console.log('🌐 [ArticleSummarizer] Sending request to AI service...');
             // Send to API
             const result = await this.apiClient.summarizeArticle(this.articleData);
+            console.log('📬 [ArticleSummarizer] AI service response received:', {
+                success: result.success,
+                summaryLength: result.summary?.length || 0,
+                hasMetadata: !!result.metadata
+            });
             
             if (result.success) {
+                console.log('✅ [ArticleSummarizer] Processing successful AI response...');
                 // Format and display summary
                 const formattedSummary = this.summaryRenderer.formatSummary(result.summary);
                 const htmlContent = this.summaryRenderer.convertMarkdownToHtml(formattedSummary);
+                console.log('🎨 [ArticleSummarizer] Summary formatted and converted to HTML');
                 
                 this.floatingUI.showSummary(htmlContent);
+                console.log('✅ [ArticleSummarizer] Summary displayed to user');
                 
                 // Add metadata if available
                 if (result.metadata) {
@@ -354,7 +396,7 @@ let articleSummarizer = null;
 
 // Start when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContented', () => {
         articleSummarizer = new ArticleSummarizer();
     });
 } else {

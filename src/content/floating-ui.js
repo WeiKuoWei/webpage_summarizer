@@ -10,29 +10,42 @@ class FloatingUI {
     }
 
     async create() {
+        console.log('🎨 [FloatingUI] Starting UI creation process...');
+        
         if (this.overlay) {
+            console.log('🔄 [FloatingUI] Removing existing overlay');
             this.remove();
         }
 
         try {
             // Load CSS
+            console.log('🎨 [FloatingUI] Injecting CSS styles...');
             await this.injectCSS();
+            console.log('✅ [FloatingUI] CSS injected successfully');
             
             // Create overlay element
+            console.log('🏠 [FloatingUI] Creating overlay element...');
             await this.createOverlayElement();
+            console.log('✅ [FloatingUI] Overlay element created');
             
             // Set up event listeners
+            console.log('🎧 [FloatingUI] Setting up event listeners...');
             this.setupEventListeners();
+            console.log('✅ [FloatingUI] Event listeners configured');
             
             // Position the overlay
+            console.log('📍 [FloatingUI] Positioning overlay...');
             this.positionOverlay();
+            console.log('✅ [FloatingUI] Overlay positioned');
             
             // Animate in
+            console.log('✨ [FloatingUI] Starting entrance animation...');
             this.animateIn();
             
+            console.log('✅ [FloatingUI] UI creation completed successfully');
             return this.overlay;
         } catch (error) {
-            console.error('Failed to create floating UI:', error);
+            console.error('💥 [FloatingUI] Failed to create floating UI:', error);
             return null;
         }
     }
@@ -175,24 +188,36 @@ class FloatingUI {
     }
 
     minimize() {
-        if (!this.overlay || this.isMinimized) return;
+        if (!this.overlay || this.isMinimized) {
+            console.log('⚠️ [FloatingUI] Minimize skipped - no overlay or already minimized');
+            return;
+        }
         
+        console.log('➖ [FloatingUI] Minimizing overlay...');
         this.overlay.classList.add('minimized');
         this.isMinimized = true;
         
         // Store current position for restoration
         const rect = this.overlay.getBoundingClientRect();
         this.position = { x: rect.left, y: rect.top };
+        
+        console.log('✅ [FloatingUI] Overlay minimized, position saved:', this.position);
     }
 
     restore() {
-        if (!this.overlay || !this.isMinimized) return;
+        if (!this.overlay || !this.isMinimized) {
+            console.log('⚠️ [FloatingUI] Restore skipped - no overlay or not minimized');
+            return;
+        }
         
+        console.log('➕ [FloatingUI] Restoring overlay from minimized state...');
         this.overlay.classList.remove('minimized');
         this.isMinimized = false;
         
         // Restore position
         this.positionOverlay();
+        
+        console.log('✅ [FloatingUI] Overlay restored successfully');
     }
 
     close() {
@@ -238,6 +263,8 @@ class FloatingUI {
     }
 
     showLoading(message = 'Analyzing article...') {
+        console.log('🔄 [FloatingUI] Showing loading state:', message);
+        
         const loadingEl = this.overlay?.querySelector('.loading-indicator');
         const loadingText = this.overlay?.querySelector('.loading-indicator span');
         const summaryContent = this.overlay?.querySelector('.summary-content');
@@ -246,6 +273,9 @@ class FloatingUI {
         if (loadingEl && loadingText) {
             loadingText.textContent = message;
             loadingEl.style.display = 'flex';
+            console.log('✅ [FloatingUI] Loading indicator displayed');
+        } else {
+            console.warn('⚠️ [FloatingUI] Loading elements not found in DOM');
         }
         
         if (summaryContent) summaryContent.style.display = 'none';
@@ -253,43 +283,75 @@ class FloatingUI {
     }
 
     showSummary(summaryHtml) {
+        console.log('✅ [FloatingUI] Displaying summary content:', {
+            htmlLength: summaryHtml?.length || 0,
+            hasContent: !!summaryHtml
+        });
+        
         const loadingEl = this.overlay?.querySelector('.loading-indicator');
         const summaryContent = this.overlay?.querySelector('.summary-content');
         const summaryText = this.overlay?.querySelector('.summary-text');
         const errorMessage = this.overlay?.querySelector('.error-message');
         
-        if (loadingEl) loadingEl.style.display = 'none';
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
+            console.log('❌ [FloatingUI] Loading indicator hidden');
+        }
         if (errorMessage) errorMessage.style.display = 'none';
         
         if (summaryText) {
             summaryText.innerHTML = summaryHtml;
+            console.log('✅ [FloatingUI] Summary HTML content set');
+        } else {
+            console.error('❌ [FloatingUI] Summary text element not found');
         }
         
         if (summaryContent) {
             summaryContent.style.display = 'block';
+            console.log('✅ [FloatingUI] Summary content section displayed');
+        } else {
+            console.error('❌ [FloatingUI] Summary content container not found');
         }
     }
 
     showError(errorText, showRetry = true) {
+        console.error('❌ [FloatingUI] Displaying error state:', {
+            error: errorText,
+            showRetry: showRetry
+        });
+        
         const loadingEl = this.overlay?.querySelector('.loading-indicator');
         const summaryContent = this.overlay?.querySelector('.summary-content');
         const errorMessage = this.overlay?.querySelector('.error-message');
         const errorTextEl = this.overlay?.querySelector('.error-text');
         const retryBtn = this.overlay?.querySelector('.retry-btn');
         
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (summaryContent) summaryContent.style.display = 'none';
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
+            console.log('❌ [FloatingUI] Loading indicator hidden');
+        }
+        if (summaryContent) {
+            summaryContent.style.display = 'none';
+            console.log('❌ [FloatingUI] Summary content hidden');
+        }
         
         if (errorTextEl) {
             errorTextEl.textContent = errorText;
+            console.log('✅ [FloatingUI] Error text set');
+        } else {
+            console.warn('⚠️ [FloatingUI] Error text element not found');
         }
         
         if (retryBtn) {
             retryBtn.style.display = showRetry ? 'inline-flex' : 'none';
+            console.log('🔄 [FloatingUI] Retry button visibility:', showRetry ? 'shown' : 'hidden');
         }
         
         if (errorMessage) {
             errorMessage.style.display = 'block';
+            console.log('✅ [FloatingUI] Error message displayed');
+        } else {
+            console.error('❌ [FloatingUI] Error message container not found');
         }
     }
 

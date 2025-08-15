@@ -45,7 +45,7 @@ The system uses a confidence-based scoring system (0-100%) that evaluates:
 - Metadata presence (author, publish date, schema)
 - Text patterns and readability metrics
 
-Minimum confidence threshold: 70%
+Minimum confidence threshold: 50%
 
 ### Text Extraction Strategy
 Multi-layer extraction approach:

@@ -17,13 +17,23 @@ class ArticleDetector {
     }
 
     detectArticle() {
+        console.log('🔍 [ArticleDetector] Starting article detection analysis...');
         const confidence = this.calculateConfidence();
-        const isArticle = confidence >= 70;
+        const isArticle = confidence >= 50;
+        const metadata = this.extractMetadata();
+        
+        console.log('📋 [ArticleDetector] Detection complete:', {
+            isArticle,
+            confidence: `${confidence}%`,
+            title: metadata.title?.substring(0, 50) + '...',
+            author: metadata.author,
+            url: metadata.url
+        });
         
         return {
             isArticle,
             confidence,
-            metadata: this.extractMetadata()
+            metadata
         };
     }
 
@@ -31,51 +41,78 @@ class ArticleDetector {
         let score = 0;
         
         // Check for article-specific HTML elements
-        score += this.checkArticleElements() * 30;
+        const articleElementsScore = this.checkArticleElements() * 30;
+        score += articleElementsScore;
+        console.log('🏠 [ArticleDetector] Article elements score:', articleElementsScore.toFixed(1));
         
         // Check content structure
-        score += this.checkContentStructure() * 25;
+        const contentStructureScore = this.checkContentStructure() * 25;
+        score += contentStructureScore;
+        console.log('📏 [ArticleDetector] Content structure score:', contentStructureScore.toFixed(1));
         
         // Check metadata presence
-        score += this.checkMetadata() * 20;
+        const metadataScore = this.checkMetadata() * 20;
+        score += metadataScore;
+        console.log('🏷️ [ArticleDetector] Metadata score:', metadataScore.toFixed(1));
         
         // Check text patterns
-        score += this.checkTextPatterns() * 15;
+        const textPatternsScore = this.checkTextPatterns() * 15;
+        score += textPatternsScore;
+        console.log('📝 [ArticleDetector] Text patterns score:', textPatternsScore.toFixed(1));
         
         // Check for navigation elements (negative score)
-        score -= this.checkNavigationElements() * 10;
+        const navPenalty = this.checkNavigationElements() * 10;
+        score -= navPenalty;
+        console.log('🧠 [ArticleDetector] Navigation penalty:', navPenalty.toFixed(1));
         
-        return Math.max(0, Math.min(100, score));
+        const finalScore = Math.max(0, Math.min(100, score));
+        console.log('🏆 [ArticleDetector] Final confidence score:', finalScore.toFixed(1));
+        return finalScore;
     }
 
     checkArticleElements() {
+        console.log('🗓️ [ArticleDetector] Checking for semantic article elements...');
         for (const selector of this.articleSelectors) {
             const elements = document.querySelectorAll(selector);
             if (elements.length > 0) {
-                const hasSignificantContent = Array.from(elements).some(el => 
-                    el.textContent.trim().length > 500
-                );
-                if (hasSignificantContent) return 1;
+                const hasSignificantContent = Array.from(elements).some(el => {
+                    const contentLength = el.textContent.trim().length;
+                    console.log(`  🔍 Found ${selector}: ${contentLength} chars`);
+                    return contentLength > 500;
+                });
+                if (hasSignificantContent) {
+                    console.log(`  ✅ Significant content found in ${selector}`);
+                    return 1;
+                }
             }
         }
+        console.log('  ❌ No semantic article elements with significant content');
         return 0;
     }
 
     checkContentStructure() {
+        console.log('📊 [ArticleDetector] Analyzing content structure...');
         const paragraphs = document.querySelectorAll('p');
         const significantParagraphs = Array.from(paragraphs).filter(p => 
             p.textContent.trim().length > 50
         );
+        
+        console.log(`  📄 Total paragraphs: ${paragraphs.length}`);
+        console.log(`  ✅ Significant paragraphs: ${significantParagraphs.length}`);
         
         if (significantParagraphs.length >= this.minParagraphCount) {
             const totalWords = significantParagraphs.reduce((count, p) => 
                 count + p.textContent.trim().split(/\s+/).length, 0
             );
             
+            console.log(`  📈 Total words: ${totalWords} (min: ${this.minWordCount})`);
+            
             if (totalWords >= this.minWordCount) {
+                console.log('  ✅ Content structure requirements met');
                 return 1;
             }
         }
+        console.log('  ❌ Insufficient content structure');
         return 0;
     }
 
@@ -132,12 +169,20 @@ class ArticleDetector {
     }
 
     extractMetadata() {
-        return {
+        console.log('🏷️ [ArticleDetector] Extracting page metadata...');
+        const metadata = {
             title: this.extractTitle(),
             author: this.extractAuthor(),
             publishDate: this.extractPublishDate(),
             url: window.location.href
         };
+        console.log('📋 [ArticleDetector] Metadata extracted:', {
+            hasTitle: !!metadata.title,
+            hasAuthor: !!metadata.author,
+            hasDate: !!metadata.publishDate,
+            titlePreview: metadata.title?.substring(0, 50)
+        });
+        return metadata;
     }
 
     extractTitle() {

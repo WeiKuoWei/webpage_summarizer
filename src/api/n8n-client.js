@@ -10,16 +10,31 @@ class N8NClient {
 
     async summarizeArticle(articleData) {
         try {
+            console.log('🌐 [N8NClient] Preparing summarization request...');
             const payload = {
                 text: articleData.content,
                 title: articleData.title || '',
                 url: articleData.url || window.location.href,
                 metadata: articleData.metadata || {}
             };
+            
+            console.log('📬 [N8NClient] Request payload:', {
+                textLength: payload.text?.length || 0,
+                hasTitle: !!payload.title,
+                url: payload.url,
+                metadataKeys: Object.keys(payload.metadata || {})
+            });
 
+            console.log('🚀 [N8NClient] Sending request to:', this.endpoints.summarize);
             const response = await this.makeRequest(this.endpoints.summarize, payload);
+            console.log('📬 [N8NClient] Response received from AI service');
             
             if (response && response.summary) {
+                console.log('✅ [N8NClient] Valid summary response received:', {
+                    summaryLength: response.summary.length,
+                    hasKeyPoints: !!(response.keyPoints && response.keyPoints.length > 0),
+                    hasMetadata: !!response.metadata
+                });
                 return {
                     success: true,
                     summary: response.summary,
@@ -27,10 +42,15 @@ class N8NClient {
                     metadata: response.metadata || {}
                 };
             } else {
+                console.error('❌ [N8NClient] Invalid response format:', response);
                 throw new Error('Invalid response format');
             }
         } catch (error) {
-            console.error('Summarization failed:', error);
+            console.error('💥 [N8NClient] Summarization request failed:', {
+                error: error.message,
+                stack: error.stack,
+                endpoint: this.endpoints.summarize
+            });
             throw new Error(this.getErrorMessage(error));
         }
     }
@@ -63,8 +83,18 @@ class N8NClient {
     }
 
     async makeRequest(endpoint, payload) {
+        console.log('🚀 [N8NClient] Making HTTP request:', {
+            endpoint,
+            method: 'POST',
+            payloadSize: JSON.stringify(payload).length + ' bytes',
+            timeout: this.timeout + 'ms'
+        });
+        
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        const timeoutId = setTimeout(() => {
+            console.warn('⏰ [N8NClient] Request timeout triggered after', this.timeout + 'ms');
+            controller.abort();
+        }, this.timeout);
 
         try {
             const response = await fetch(endpoint, {
@@ -78,25 +108,42 @@ class N8NClient {
             });
 
             clearTimeout(timeoutId);
+            console.log('📬 [N8NClient] HTTP response received:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
 
             if (!response.ok) {
                 const errorText = await response.text().catch(() => 'Unknown error');
+                console.error('❌ [N8NClient] HTTP error response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorText: errorText.substring(0, 200)
+                });
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
             const data = await response.json();
+            console.log('✅ [N8NClient] Response parsed successfully:', {
+                hasData: !!data,
+                keys: Object.keys(data || {})
+            });
             return data;
         } catch (error) {
             clearTimeout(timeoutId);
             
             if (error.name === 'AbortError') {
+                console.error('⏰ [N8NClient] Request aborted due to timeout');
                 throw new Error('Request timed out. Please try again.');
             }
             
             if (error instanceof TypeError && error.message.includes('fetch')) {
+                console.error('🌐 [N8NClient] Network error:', error.message);
                 throw new Error('Network error. Please check your connection.');
             }
             
+            console.error('💥 [N8NClient] Unexpected request error:', error);
             throw error;
         }
     }
@@ -152,22 +199,35 @@ class N8NClient {
 
     // Utility method to validate article data before sending
     validateArticleData(articleData) {
+        console.log('✅ [N8NClient] Validating article data...');
+        
         if (!articleData || typeof articleData !== 'object') {
+            console.error('❌ [N8NClient] Invalid article data type:', typeof articleData);
             throw new Error('Invalid article data');
         }
         
         if (!articleData.content || typeof articleData.content !== 'string') {
+            console.error('❌ [N8NClient] Missing or invalid content:', typeof articleData.content);
             throw new Error('Article content is required');
         }
         
-        if (articleData.content.length < 100) {
+        const contentLength = articleData.content.length;
+        console.log('📏 [N8NClient] Content validation:', {
+            length: contentLength,
+            hasTitle: !!articleData.title,
+            hasMetadata: !!articleData.metadata
+        });
+        
+        if (contentLength < 100) {
+            console.error('❌ [N8NClient] Content too short:', contentLength, 'chars');
             throw new Error('Article content is too short to summarize');
         }
         
-        if (articleData.content.length > 10000) {
-            console.warn('Article content is very long, may take extra time to process');
+        if (contentLength > 10000) {
+            console.warn('⚠️ [N8NClient] Very long content, may take extra time:', contentLength, 'chars');
         }
         
+        console.log('✅ [N8NClient] Article data validation passed');
         return true;
     }
 

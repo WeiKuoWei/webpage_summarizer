@@ -36,50 +36,76 @@ class TextExtractor {
 
     extractText() {
         try {
+            console.log('📄 [TextExtractor] Starting text extraction process...');
+            
             // Try primary extraction methods
-            let text = this.extractFromArticleElements() || 
-                      this.extractFromMainContent() || 
-                      this.extractFromParagraphs();
+            console.log('🔍 [TextExtractor] Attempting article element extraction...');
+            let text = this.extractFromArticleElements();
+            
+            if (!text) {
+                console.log('🔍 [TextExtractor] Attempting main content extraction...');
+                text = this.extractFromMainContent();
+            }
+            
+            if (!text) {
+                console.log('🔍 [TextExtractor] Attempting paragraph extraction...');
+                text = this.extractFromParagraphs();
+            }
             
             if (!text || text.length < 200) {
+                console.log('❌ [TextExtractor] Insufficient content found:', text?.length || 0, 'chars');
                 throw new Error('Insufficient content found');
             }
             
-            return this.cleanText(text);
+            const cleanedText = this.cleanText(text);
+            console.log('✅ [TextExtractor] Text extraction successful:', cleanedText.length, 'chars');
+            return cleanedText;
         } catch (error) {
-            console.error('Text extraction failed:', error);
+            console.error('💥 [TextExtractor] Text extraction failed:', error);
             return null;
         }
     }
 
     extractFromArticleElements() {
+        console.log('🏠 [TextExtractor] Scanning article elements...');
         for (const selector of this.articleSelectors) {
             const elements = document.querySelectorAll(selector);
-            for (const element of elements) {
-                const text = this.getCleanTextFromElement(element);
-                if (text && text.length > 300) {
-                    return text;
+            if (elements.length > 0) {
+                console.log(`  🔍 Found ${elements.length} ${selector} element(s)`);
+                for (const element of elements) {
+                    const text = this.getCleanTextFromElement(element);
+                    if (text && text.length > 300) {
+                        console.log(`  ✅ Using content from ${selector}: ${text.length} chars`);
+                        return text;
+                    }
                 }
             }
         }
+        console.log('  ❌ No suitable article elements found');
         return null;
     }
 
     extractFromMainContent() {
+        console.log('📏 [TextExtractor] Scanning main content containers...');
         // Look for the main content area
         const contentContainers = document.querySelectorAll(
             'div[class*="content"], div[class*="article"], div[class*="post"]'
         );
         
+        console.log(`  🔍 Found ${contentContainers.length} content containers`);
+        
         for (const container of contentContainers) {
             const paragraphs = container.querySelectorAll('p');
+            console.log(`  📄 Container has ${paragraphs.length} paragraphs`);
             if (paragraphs.length >= 3) {
                 const text = this.extractTextFromParagraphs(paragraphs);
                 if (text && text.length > 300) {
+                    console.log(`  ✅ Using main content: ${text.length} chars`);
                     return text;
                 }
             }
         }
+        console.log('  ❌ No suitable main content found');
         return null;
     }
 
@@ -138,7 +164,8 @@ class TextExtractor {
     }
 
     cleanText(text) {
-        return text
+        const originalLength = text.length;
+        const cleaned = text
             // Normalize whitespace
             .replace(/\s+/g, ' ')
             // Remove excessive line breaks
@@ -147,18 +174,42 @@ class TextExtractor {
             .trim()
             // Limit length
             .substring(0, this.maxLength);
+            
+        console.log('🧹 [TextExtractor] Text cleaning:', {
+            originalLength,
+            cleanedLength: cleaned.length,
+            truncated: originalLength > this.maxLength
+        });
+        
+        return cleaned;
     }
 
     extractStructuredContent() {
-        const content = {
-            title: this.extractTitle(),
-            subtitle: this.extractSubtitle(),
-            content: this.extractText(),
-            headings: this.extractHeadings(),
-            metadata: this.extractMetadata()
+        console.log('🏠 [TextExtractor] Extracting structured content...');
+        
+        const title = this.extractTitle();
+        const subtitle = this.extractSubtitle();
+        const content = this.extractText();
+        const headings = this.extractHeadings();
+        const metadata = this.extractMetadata();
+        
+        const result = {
+            title,
+            subtitle,
+            content,
+            headings,
+            metadata
         };
         
-        return content;
+        console.log('📋 [TextExtractor] Structured content extracted:', {
+            hasTitle: !!title,
+            hasSubtitle: !!subtitle,
+            contentLength: content?.length || 0,
+            headingCount: headings?.length || 0,
+            wordCount: metadata?.wordCount || 0
+        });
+        
+        return result;
     }
 
     extractTitle() {

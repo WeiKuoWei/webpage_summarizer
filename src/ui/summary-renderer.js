@@ -15,34 +15,50 @@ class SummaryRenderer {
 
     renderSummary(summaryText, container) {
         try {
+            console.log('🎨 [SummaryRenderer] Rendering summary:', {
+                textLength: summaryText?.length || 0,
+                hasContainer: !!container
+            });
+            
             const htmlContent = this.convertMarkdownToHtml(summaryText);
             container.innerHTML = htmlContent;
             this.setupCopyButton(container);
+            
+            console.log('✅ [SummaryRenderer] Summary rendered successfully');
             return true;
         } catch (error) {
-            console.error('Failed to render summary:', error);
+            console.error('💥 [SummaryRenderer] Failed to render summary:', error);
             container.innerHTML = '<p>Error displaying summary</p>';
             return false;
         }
     }
 
     convertMarkdownToHtml(markdown) {
+        console.log('🔄 [SummaryRenderer] Converting markdown to HTML...');
         let html = markdown;
         
         // Apply markdown conversions
+        console.log('⚙️ [SummaryRenderer] Applying markdown patterns...');
         this.markdownPatterns.forEach(({ pattern, replacement }) => {
+            const matches = html.match(pattern);
+            if (matches) {
+                console.log(`  ✅ Pattern matched: ${pattern} (${matches.length} times)`);
+            }
             html = html.replace(pattern, replacement);
         });
         
         // Handle line breaks and paragraphs
+        console.log('📏 [SummaryRenderer] Processing paragraphs...');
         html = this.processParagraphs(html);
         
         // Handle lists
+        console.log('📝 [SummaryRenderer] Processing lists...');
         html = this.processLists(html);
         
         // Clean up extra whitespace
         html = html.replace(/\n\s*\n/g, '\n').trim();
         
+        console.log('✅ [SummaryRenderer] Markdown conversion complete, HTML length:', html.length);
         return html;
     }
 
@@ -91,10 +107,17 @@ class SummaryRenderer {
     }
 
     async copyToClipboard(text, buttonElement) {
+        console.log('📋 [SummaryRenderer] Attempting to copy text to clipboard:', {
+            textLength: text?.length || 0,
+            hasButton: !!buttonElement
+        });
+        
         try {
             await navigator.clipboard.writeText(text);
+            console.log('✅ [SummaryRenderer] Text copied to clipboard successfully');
             this.showCopySuccess(buttonElement);
         } catch (error) {
+            console.warn('⚠️ [SummaryRenderer] Clipboard API failed, using fallback:', error.message);
             // Fallback for older browsers
             this.fallbackCopyToClipboard(text, buttonElement);
         }
@@ -144,11 +167,19 @@ class SummaryRenderer {
     }
 
     formatSummary(rawSummary) {
+        console.log('⚙️ [SummaryRenderer] Formatting AI summary:', {
+            originalLength: rawSummary?.length || 0,
+            hasPrefix: /^Summary:\s*/i.test(rawSummary || '')
+        });
+        
         // Clean up common formatting issues from AI responses
         let formatted = rawSummary.trim();
         
         // Remove "Summary:" prefix if present
-        formatted = formatted.replace(/^Summary:\s*/i, '');
+        if (/^Summary:\s*/i.test(formatted)) {
+            console.log('  ✂️ Removing "Summary:" prefix');
+            formatted = formatted.replace(/^Summary:\s*/i, '');
+        }
         
         // Ensure proper spacing around list items
         formatted = formatted.replace(/([^\n])\n\*/g, '$1\n\n*');
@@ -156,6 +187,10 @@ class SummaryRenderer {
         
         // Ensure proper spacing around headings
         formatted = formatted.replace(/([^\n])\n#/g, '$1\n\n#');
+        
+        console.log('✅ [SummaryRenderer] Summary formatting complete:', {
+            formattedLength: formatted.length
+        });
         
         return formatted;
     }
