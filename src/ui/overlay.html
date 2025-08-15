@@ -1,0 +1,52 @@
+<div id="article-summarizer-overlay" class="summarizer-overlay">
+    <div class="overlay-header">
+        <div class="overlay-title">
+            <span class="title-text">Article Summary</span>
+            <div class="title-controls">
+                <button class="control-btn minimize-btn" title="Minimize">−</button>
+                <button class="control-btn close-btn" title="Close">×</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="overlay-content">
+        <div class="summary-section">
+            <div class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <span>Analyzing article...</span>
+            </div>
+            
+            <div class="summary-content" style="display: none;">
+                <div class="summary-text"></div>
+                <div class="summary-actions">
+                    <button class="action-btn copy-btn">📋 Copy Summary</button>
+                    <button class="action-btn regenerate-btn">🔄 Regenerate</button>
+                </div>
+            </div>
+            
+            <div class="error-message" style="display: none;">
+                <div class="error-text"></div>
+                <button class="action-btn retry-btn">🔄 Try Again</button>
+            </div>
+        </div>
+        
+        <div class="chat-section">
+            <div class="chat-header">
+                <span>Ask questions about this article</span>
+            </div>
+            
+            <div class="chat-messages">
+                <div class="welcome-message">
+                    <p>I've read the article and can answer questions about it. What would you like to know?</p>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" placeholder="Ask a question about the article..." maxlength="200">
+                <button class="send-btn" disabled>
+                    <span class="send-icon">➤</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Article Summarizer",
+  "version": "1.0",
+  "description": "Summarize articles instantly with AI",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Summarize Article"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/*.js",
+        "ui/*.js",
+        "ui/*.html",
+        "ui/*.css",
+        "api/*.js",
+        "utils/*.js"
+      ],
+      "matches": ["*://*/*"]
+    }
+  ]
+}
