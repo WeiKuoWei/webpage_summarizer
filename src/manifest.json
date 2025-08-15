@@ -5,7 +5,8 @@
   "description": "Summarize articles instantly with AI",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting", 
+    "tabs"
   ],
   "host_permissions": [
     "*://*/*"
@@ -16,8 +17,18 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
-      "js": ["content.js"]
+      "matches": ["<all_urls>"],
+      "js": [
+        "utils/dom-utils.js",
+        "utils/storage.js", 
+        "api/n8n-client.js",
+        "content/article-detector.js",
+        "content/text-extractor.js",
+        "ui/summary-renderer.js",
+        "ui/chat-interface.js",
+        "content/floating-ui.js",
+        "content.js"
+      ]
     }
   ],
   "web_accessible_resources": [
@@ -30,7 +41,8 @@
         "api/*.js",
         "utils/*.js"
       ],
-      "matches": ["*://*/*"]
+      "matches": ["*://*/*"],
+      "use_dynamic_url": true
     }
   ]
 }

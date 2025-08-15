@@ -70,23 +70,38 @@ class ArticleSummarizer {
 
     async loadSingleModule(url) {
         return new Promise((resolve, reject) => {
-            console.log(`Loading module: ${url}`);
+            console.log(`🔄 Loading module: ${url}`);
             
             const script = document.createElement('script');
             script.src = chrome.runtime.getURL(url);
+            script.type = 'text/javascript';
+            
+            // Critical: Set these attributes to ensure execution in content script context
+            script.setAttribute('data-extension-id', chrome.runtime.id);
             
             script.onload = () => {
-                console.log(`Module loaded: ${url}`);
-                // Small delay to ensure class registration
+                console.log(`✅ Module loaded: ${url}`);
+                // Clean up the script element
+                script.remove();
+                // Small delay to ensure execution
                 setTimeout(resolve, 10);
             };
             
             script.onerror = (error) => {
-                console.error(`Failed to load module: ${url}`, error);
+                console.error(`❌ Failed to load module: ${url}`, error);
+                script.remove();
                 reject(new Error(`Failed to load ${url}`));
             };
             
-            document.head.appendChild(script);
+            // Inject into document head
+            (document.head || document.documentElement).appendChild(script);
+        });
+    }
+    async getCurrentTabId() {
+        return new Promise((resolve) => {
+            chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+                resolve(tabs[0].id);
+            });
         });
     }
 

@@ -3,7 +3,7 @@ class N8NClient {
         this.baseUrl = 'https://piccollage-ops.app.n8n.cloud/webhook';
         this.endpoints = {
             summarize: `${this.baseUrl}/summarize`,
-            chat: `${this.baseUrl}/chat` // You may need to create this endpoint
+            chat: `${this.baseUrl}/chat`
         };
         this.timeout = 30000; // 30 seconds
     }
